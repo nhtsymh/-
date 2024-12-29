@@ -86,6 +86,31 @@ async def enhanced_register_user(data):
 
 
 
+async def enhanced_delete_user(data):
+
+    try:
+        # 调用原始删除用户服务
+        result = await delete_user(data)
+
+        # 如果删除成功，发送通知邮件
+        if "message" in result and result["message"] == "User deleted successfully":
+            email_data = {
+                "recipient": "783016538@qq.com",  # 替换为用户的邮箱
+                "subject": "Account Deletion Successful",
+                "body": f"Hello {data.get('username', 'User')},\n\nYour account has been successfully deleted.\n\nThank you!"
+            }
+            await send_email(email_data)
+
+        return result
+    except ValueError as ve:
+        # 捕获 ValueError 并返回友好的错误消息
+        return {"error": str(ve)}
+    except Exception as e:
+        # 捕获其他异常
+        return {"error": f"An unexpected error occurred: {str(e)}"}
+
+
+
 
 # 定义路由
 @app.route("/invoke", methods=["POST"])
@@ -101,7 +126,7 @@ async def send_email_route(request):
         "send_email": send_email,
         "register_user": enhanced_register_user,
         "update_user": update_user,
-        "delete_user": delete_user,
+        "delete_user": enhanced_delete_user,
         "login_user": login_user
     }
 
