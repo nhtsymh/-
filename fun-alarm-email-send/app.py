@@ -68,6 +68,25 @@ async def login_user(data):
     server.quit()
     return {"message": "User is attempting to login"}
 
+
+async def enhanced_register_user(data):
+    # 调用注册用户服务
+    result = await register_user(data)
+
+    # 如果注册成功，发送通知邮件
+    if "message" in result and result["message"] == "User registered successfully":
+        email_data = {
+            "recipient": "783016538@qq.com",  # 使用用户注册的邮箱
+            "subject": "Registration Successful",
+            "body": f"Hello {data['username']},\n\nYour registration was successful.\n\nThank you!"
+        }
+        await send_email(email_data)
+    
+    return result
+
+
+
+
 # 定义路由
 @app.route("/invoke", methods=["POST"])
 async def send_email_route(request):
@@ -80,7 +99,7 @@ async def send_email_route(request):
         "update_config": update_config,
         "delete_config": delete_config,
         "send_email": send_email,
-        "register_user": register_user,
+        "register_user": enhanced_register_user,
         "update_user": update_user,
         "delete_user": delete_user,
         "login_user": login_user
@@ -94,3 +113,4 @@ async def send_email_route(request):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=9000, dev=True)
+
